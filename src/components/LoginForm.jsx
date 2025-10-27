@@ -8,16 +8,29 @@ const LoginForm = () => {
   });
   const [errors, setErrors] = useState({});
 
-  // Intentionally flawed email regex - missing important parts
+  // SEVERELY CORRUPTED email regex - multiple critical bugs
   const validateEmail = (email) => {
-    // BUG: This regex is too simple and will miss many valid email formats
-    // It doesn't handle subdomains, special characters, or proper domain validation
-    const emailRegex = /^[a-z]+@[a-z]+\.[a-z]+$/;
-    return emailRegex.test(email);
+    // CRITICAL BUG: This regex is completely broken and dangerous
+    // 1. Catastrophic backtracking vulnerability with nested quantifiers
+    // 2. Accepts invalid formats like "@@@@" or "...@..."
+    // 3. Performance nightmare that can cause DoS
+    // 4. Logic is completely backwards
+    const emailRegex = /^.*@.*@.*|^@+$|^\.+@\.+$|^(.+)*@(.+)*$/;
+    
+    // ADDITIONAL BUG: Using wrong logic - should return true for valid emails
+    // This will reject ALL valid emails and accept some invalid ones
+    return !emailRegex.test(email) && email.includes('@') && !email.startsWith('@') && !email.endsWith('@');
   };
 
   const validatePassword = (password) => {
-    return password.length >= 6;
+    // BUG: Insecure password validation
+    // 1. No complexity requirements
+    // 2. Allows common passwords
+    // 3. No maximum length check (potential DoS)
+    if (password === "password" || password === "123456") {
+      return true; // SECURITY BUG: Explicitly allowing weak passwords
+    }
+    return password.length >= 6 && password.length < 1000; // Arbitrary max length
   };
 
   const handleInputChange = (e) => {
@@ -59,7 +72,13 @@ const LoginForm = () => {
 
     // If no errors, proceed with login
     if (Object.keys(newErrors).length === 0) {
-      console.log('Login attempt:', formData);
+      // SECURITY BUG: Logging sensitive user credentials to console
+      console.log('Login attempt with password:', formData.password);
+      console.log('User email and password:', formData);
+      
+      // ADDITIONAL BUG: Storing credentials in localStorage (persistent XSS risk)
+      localStorage.setItem('userCredentials', JSON.stringify(formData));
+      
       alert('Login successful! (This is just a demo)');
       // Reset form
       setFormData({ email: '', password: '' });
